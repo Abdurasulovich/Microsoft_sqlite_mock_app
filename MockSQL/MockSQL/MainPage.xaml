@@ -1,0 +1,272 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:MockSQL.Entities"
+             x:Class="MockSQL.MainPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#0F172A">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- ══════════════════════════════════════════════════
+             ROW 0 — HEADER
+        ══════════════════════════════════════════════════════ -->
+        <Grid Grid.Row="0"
+              Padding="20,54,20,18"
+              ColumnDefinitions="*,Auto">
+
+            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                <Label Text="MAHSULOTLAR"
+                       FontSize="11"
+                       CharacterSpacing="4"
+                       TextColor="#475569"
+                       FontAttributes="Bold"/>
+                <Label x:Name="LblTitle"
+                       Text="Do'kon"
+                       FontSize="30"
+                       FontAttributes="Bold"
+                       TextColor="#F8FAFC"/>
+            </VerticalStackLayout>
+
+            <!-- Product count badge -->
+            <Border Grid.Column="1"
+                    x:Name="BadgeCount"
+                    BackgroundColor="#1E293B"
+                    StrokeShape="RoundRectangle 14"
+                    Stroke="#334155"
+                    Padding="14,8"
+                    VerticalOptions="Center">
+                <Label x:Name="LblCount"
+                       Text="0 ta"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       TextColor="#94A3B8"/>
+            </Border>
+        </Grid>
+
+        <!-- ══════════════════════════════════════════════════
+             ROW 1 — SEARCH + CATEGORY CHIPS
+        ══════════════════════════════════════════════════════ -->
+        <VerticalStackLayout Grid.Row="1" Spacing="12" Padding="20,0,20,12">
+
+            <!-- Search bar -->
+            <Border BackgroundColor="#1E293B"
+                    StrokeShape="RoundRectangle 14"
+                    Stroke="#334155"
+                    Padding="14,0">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                    <Label Grid.Column="0"
+                           Text="⌕"
+                           FontSize="20"
+                           TextColor="#475569"
+                           VerticalOptions="Center"/>
+                    <Entry Grid.Column="1"
+                           x:Name="EntrySearch"
+                           Placeholder="Qidirish..."
+                           PlaceholderColor="#334155"
+                           TextColor="#F8FAFC"
+                           BackgroundColor="Transparent"
+                           HeightRequest="48"
+                           ClearButtonVisibility="WhileEditing"
+                           TextChanged="OnSearchTextChanged"/>
+                    <ActivityIndicator Grid.Column="2"
+                                       x:Name="SearchSpinner"
+                                       Color="#6366F1"
+                                       IsRunning="False"
+                                       IsVisible="False"
+                                       WidthRequest="20"
+                                       HeightRequest="20"
+                                       VerticalOptions="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Category horizontal chips -->
+            <ScrollView Orientation="Horizontal"
+                        HorizontalScrollBarVisibility="Never">
+                <HorizontalStackLayout x:Name="ChipsLayout" Spacing="8"/>
+            </ScrollView>
+        </VerticalStackLayout>
+
+        <!-- ══════════════════════════════════════════════════
+             ROW 2 — LIST
+        ══════════════════════════════════════════════════════ -->
+        <RefreshView Grid.Row="2"
+                     x:Name="Refresher"
+                     RefreshColor="#6366F1"
+                     Refreshing="OnRefreshing">
+
+            <CollectionView x:Name="ProductsCV"
+                            Margin="20,0"
+                            SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout VerticalOptions="Center"
+                                         HorizontalOptions="Center"
+                                         Spacing="12"
+                                         Padding="0,60,0,0">
+                        <Label Text="🔍" FontSize="48" HorizontalOptions="Center"/>
+                        <Label Text="Mahsulot topilmadi"
+                               FontSize="16"
+                               TextColor="#475569"
+                               HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="10"/>
+                </CollectionView.ItemsLayout>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Product">
+                        <SwipeView>
+
+                            <!-- ► Swipe LEFT  → O'chir -->
+                            <SwipeView.RightItems>
+                                <SwipeItems Mode="Execute">
+                                    <SwipeItem Text="O'chir"
+                                               BackgroundColor="#EF4444"
+                                               Invoked="OnDeleteSwiped"/>
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+
+                            <!-- ► Swipe RIGHT → Tahrir -->
+                            <SwipeView.LeftItems>
+                                <SwipeItems Mode="Reveal">
+                                    <SwipeItem Text="Tahrir"
+                                               BackgroundColor="#6366F1"
+                                               Invoked="OnEditSwiped"/>
+                                </SwipeItems>
+                            </SwipeView.LeftItems>
+
+                            <!-- Card -->
+                            <Border BackgroundColor="#1E293B"
+                                    StrokeShape="RoundRectangle 16"
+                                    Stroke="#334155"
+                                    StrokeThickness="1">
+
+                                <Grid ColumnDefinitions="56,*,Auto"
+                                      ColumnSpacing="12"
+                                      Padding="14,12">
+
+                                    <!-- Icon box -->
+                                    <Border Grid.Column="0"
+                                            BackgroundColor="#0F172A"
+                                            StrokeShape="RoundRectangle 12"
+                                            Stroke="#334155"
+                                            WidthRequest="48"
+                                            HeightRequest="48"
+                                            VerticalOptions="Center">
+                                        <Label Text="📦"
+                                               FontSize="22"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center"/>
+                                    </Border>
+
+                                    <!-- Name / Category / Stock -->
+                                    <VerticalStackLayout Grid.Column="1"
+                                                          Spacing="3"
+                                                          VerticalOptions="Center">
+                                        <Label Text="{Binding Name}"
+                                               FontSize="15"
+                                               FontAttributes="Bold"
+                                               TextColor="#F1F5F9"
+                                               LineBreakMode="TailTruncation"
+                                               MaxLines="1"/>
+                                        <Label Text="{Binding Category.Name}"
+                                               FontSize="12"
+                                               TextColor="#6366F1"/>
+                                        <Border BackgroundColor="#0F172A"
+                                                StrokeShape="RoundRectangle 6"
+                                                Stroke="Transparent"
+                                                Padding="6,2"
+                                                HorizontalOptions="Start"
+                                                Margin="0,2,0,0">
+                                            <Label FontSize="11" TextColor="#22C55E">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="● "/>
+                                                        <Span Text="{Binding Stock}"/>
+                                                        <Span Text=" dona"/>
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                        </Border>
+                                    </VerticalStackLayout>
+
+                                    <!-- Price -->
+                                    <VerticalStackLayout Grid.Column="2"
+                                                          VerticalOptions="Center"
+                                                          HorizontalOptions="End"
+                                                          Spacing="1">
+                                        <Label Text="{Binding Price, StringFormat='{0:N0}'}"
+                                               FontSize="16"
+                                               FontAttributes="Bold"
+                                               TextColor="#F8FAFC"
+                                               HorizontalOptions="End"/>
+                                        <Label Text="so'm"
+                                               FontSize="11"
+                                               TextColor="#475569"
+                                               HorizontalOptions="End"/>
+                                    </VerticalStackLayout>
+
+                                </Grid>
+                            </Border>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+                <!-- Bottom padding so FAB doesn't cover last item -->
+                <CollectionView.Footer>
+                    <BoxView HeightRequest="90" Color="Transparent"/>
+                </CollectionView.Footer>
+            </CollectionView>
+        </RefreshView>
+
+        <!-- ══════════════════════════════════════════════════
+             ROW 3 — BOTTOM INPUT BAR
+        ══════════════════════════════════════════════════════ -->
+        <Border Grid.Row="3"
+                BackgroundColor="#0F172A"
+                StrokeShape="RoundRectangle 0"
+                Stroke="#1E293B"
+                Padding="20,12,20,34">
+            <Grid ColumnDefinitions="*,56" ColumnSpacing="10">
+
+                <Border Grid.Column="0"
+                        BackgroundColor="#1E293B"
+                        StrokeShape="RoundRectangle 14"
+                        Stroke="#334155"
+                        Padding="14,0">
+                    <Entry x:Name="EntryQuickAdd"
+                           Placeholder="Tez qo'shish: mahsulot nomi..."
+                           PlaceholderColor="#334155"
+                           TextColor="#F8FAFC"
+                           BackgroundColor="Transparent"
+                           HeightRequest="48"
+                           ReturnType="Done"
+                           ReturnCommand="{Binding Source={x:Reference BtnAdd}, Path=Command}"/>
+                </Border>
+
+                <Border Grid.Column="1"
+                        BackgroundColor="#6366F1"
+                        StrokeShape="RoundRectangle 14"
+                        Stroke="Transparent"
+                        WidthRequest="56"
+                        HeightRequest="48">
+                    <Border.Shadow>
+                        <Shadow Brush="#6366F1" Offset="0,4" Radius="12" Opacity="0.5"/>
+                    </Border.Shadow>
+                    <Button x:Name="BtnAdd"
+                            Text="＋"
+                            FontSize="24"
+                            FontAttributes="Bold"
+                            TextColor="White"
+                            BackgroundColor="Transparent"
+                            Padding="0"
+                            Clicked="OnAddClicked"/>
+                </Border>
+
+            </Grid>
+        </Border>
+
+    </Grid>
+</ContentPage>
